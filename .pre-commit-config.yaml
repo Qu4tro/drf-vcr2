@@ -1,0 +1,70 @@
+repos:
+  -   repo: https://github.com/pre-commit/pre-commit-hooks
+      rev: v4.1.0
+      hooks:
+      -   id: check-added-large-files
+      -   id: check-ast
+      -   id: check-case-conflict
+      -   id: check-json
+      -   id: check-yaml
+      -   id: check-toml
+      -   id: check-symlinks
+      -   id: check-merge-conflict
+      -   id: check-executables-have-shebangs
+      -   id: check-shebang-scripts-are-executable
+      -   id: fix-byte-order-marker
+      -   id: no-commit-to-branch
+      -   id: forbid-new-submodules
+      -   id: debug-statements
+      -   id: mixed-line-ending
+      -   id: trailing-whitespace
+      -   id: pretty-format-json
+          args:
+            - "--autofix"
+            - "--indent=2"
+            - "--no-sort-keys"
+
+  - repo: https://github.com/python-poetry/poetry
+    rev: 1.2.2
+    hooks:
+      - id: poetry-check
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.10.1
+    hooks:
+      - id: isort
+        name: isort (python)
+
+  - repo: https://github.com/MarcoGorelli/absolufy-imports
+    rev: v0.3.1
+    hooks:
+    - id: absolufy-imports
+      args:
+        - "--never"
+
+  - repo: https://github.com/psf/black
+    rev: 22.10.0
+    hooks:
+      - id: black
+        language_version: python3.10
+
+  - repo: https://github.com/pycqa/flake8
+    rev: '6.0.0'
+    hooks:
+      - id: flake8
+
+  - repo: local
+    hooks:
+    - id: mypy
+      name: mypy
+      types: ["python"]
+      language: system
+      entry: poetry run mypy
+
+    - id: pylint
+      name: pylint
+      types: ["python"]
+      language: system
+      entry: poetry run pylint
+      exclude: ^sample_project/snippets/migrations
+      args: ["-rn", "-sn"]
