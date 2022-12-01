@@ -1,7 +1,6 @@
-name: SampleProject CI
+name: Package CI
 
 on: [push]
-
 
 env:
   POETRY_VERSION: '1.2.2'
@@ -12,9 +11,6 @@ jobs:
     strategy:
       matrix:
         python-version: [ '3.10' ]
-    defaults:
-      run:
-        working-directory: ./sample_project
     steps:
       - uses: actions/checkout@v3
 
@@ -33,20 +29,20 @@ jobs:
           poetry install
 
       - name: black
-        run: poetry run black .
+        run: poetry run black drf_vcr
 
       - name: isort
-        run: poetry run isort .
+        run: poetry run isort drf_vcr
 
       - name: flake8
-        run: poetry run flake8 .
+        run: poetry run flake8 drf_vcr
 
       - name: mypy
-        run: poetry run mypy .
+        run: poetry run mypy drf_vcr
 
       - name: pylint
-        run: poetry run pylint sample_project snippets
+        run: poetry run pylint drf_vcr
 
-      - name: manage.py test
-        run: poetry run ./manage.py test --shuffle
+      - name: pytest
+        run: poetry run pytest --random-order
 
