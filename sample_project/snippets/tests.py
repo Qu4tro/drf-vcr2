@@ -1,7 +1,7 @@
 from typing import Any
 
-from drf_vcr.declarative import DeclarativeAPITestCase
 from django.test import TestCase
+from drf_vcr.declarative import DeclarativeAPITestCase
 
 
 class SanityTest(TestCase):
