@@ -22,7 +22,7 @@ from drf_spectacular.views import (
 )
 from rest_framework.routers import DefaultRouter
 
-from ..snippets import views
+from snippets import views
 
 # Create a router and register our viewsets with it.
 router = DefaultRouter()
