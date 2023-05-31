@@ -68,7 +68,6 @@ def reverse(apps: StateApps, schema_editor: BaseDatabaseSchemaEditor) -> None:
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("snippets", "0002_create_users"),
     ]

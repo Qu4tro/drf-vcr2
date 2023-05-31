@@ -1,30 +1,29 @@
-from typing import Any
-
-from django.test import TestCase
-from drf_vcr.declarative import DeclarativeAPITestCase
+from drf_snap_testing.testcase import SnapAPITestCase
 
 
-class SanityTest(TestCase):
-    def test_is_sane(self) -> None:
-        self.assertEqual(1, 1)
+class UserList(SnapAPITestCase):
+    "somethingelse"
+    url_pattern_name = "user-list"
+
+    class UserListAnon:
+        "something"
+        user = None
+
+    class UserListAnon2:
+        "something1"
+        user = {"id": 1}
 
 
-class ContractualAPICommon(DeclarativeAPITestCase):
-    url_pattern_name = "Contractual-list"
-    method = "GET"
-    user: dict[str, Any] = {}
+class SnippetTest(SnapAPITestCase):
+    url_pattern_name = "snippet-list"
 
-    def setUp(self) -> None:
-        ...
-
-    class Contractual2022APITestCases:
-        query_parameters = {"year": 2022}
-
-        class SomethingElse:
-            method = "POST"
-
-        class SomethingElse2:
-            user = None
-
-    class Contractual2023APITestCases:
-        query_parameters = {"year": 2023}
+    class SnippetPostAuthed:
+        method = "POST"
+        data = {
+            "title": "string",
+            "code": "string",
+            "linenos": True,
+            "language": "abap",
+            "style": "abap",
+        }
+        user = {"id": 1}

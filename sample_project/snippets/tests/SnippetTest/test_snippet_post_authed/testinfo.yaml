@@ -1,0 +1,3 @@
+name: test_snippet_post_authed
+parent_class_name: SnippetTest
+path: /home/quatro/drf-snap-testing/sample_project/snippets/tests.py

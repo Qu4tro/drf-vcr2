@@ -1,0 +1,3 @@
+name: test_user_list_anon2
+parent_class_name: UserList
+path: /home/quatro/drf-snap-testing/sample_project/snippets/tests.py

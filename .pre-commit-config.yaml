@@ -61,6 +61,7 @@ repos:
       name: mypy
       types: ["python"]
       language: system
+      exclude: ^sample_project
       entry: poetry run mypy
 
     - id: pylint
@@ -68,5 +69,5 @@ repos:
       types: ["python"]
       language: system
       entry: poetry run pylint
-      exclude: ^sample_project/snippets/migrations
+      exclude: ^sample_project
       args: ["-rn", "-sn"]

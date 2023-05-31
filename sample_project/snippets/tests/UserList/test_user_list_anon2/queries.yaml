@@ -1,0 +1,63 @@
+default:
+- sql: |-
+    SELECT COUNT(*) AS "__count"
+    FROM "auth_user"
+  time: 0.0
+- sql: |-
+    SELECT "auth_user"."id",
+           "auth_user"."password",
+           "auth_user"."last_login",
+           "auth_user"."is_superuser",
+           "auth_user"."username",
+           "auth_user"."first_name",
+           "auth_user"."last_name",
+           "auth_user"."email",
+           "auth_user"."is_staff",
+           "auth_user"."is_active",
+           "auth_user"."date_joined"
+    FROM "auth_user"
+    ORDER BY "auth_user"."id" ASC
+    LIMIT 3
+  time: 0.0
+- sql: |-
+    SELECT "snippets_snippet"."id",
+           "snippets_snippet"."created",
+           "snippets_snippet"."title",
+           "snippets_snippet"."code",
+           "snippets_snippet"."linenos",
+           "snippets_snippet"."language",
+           "snippets_snippet"."style",
+           "snippets_snippet"."owner_id",
+           "snippets_snippet"."highlighted"
+    FROM "snippets_snippet"
+    WHERE "snippets_snippet"."owner_id" = 1
+    ORDER BY "snippets_snippet"."created" ASC
+  time: 0.0
+- sql: |-
+    SELECT "snippets_snippet"."id",
+           "snippets_snippet"."created",
+           "snippets_snippet"."title",
+           "snippets_snippet"."code",
+           "snippets_snippet"."linenos",
+           "snippets_snippet"."language",
+           "snippets_snippet"."style",
+           "snippets_snippet"."owner_id",
+           "snippets_snippet"."highlighted"
+    FROM "snippets_snippet"
+    WHERE "snippets_snippet"."owner_id" = 2
+    ORDER BY "snippets_snippet"."created" ASC
+  time: 0.0
+- sql: |-
+    SELECT "snippets_snippet"."id",
+           "snippets_snippet"."created",
+           "snippets_snippet"."title",
+           "snippets_snippet"."code",
+           "snippets_snippet"."linenos",
+           "snippets_snippet"."language",
+           "snippets_snippet"."style",
+           "snippets_snippet"."owner_id",
+           "snippets_snippet"."highlighted"
+    FROM "snippets_snippet"
+    WHERE "snippets_snippet"."owner_id" = 3
+    ORDER BY "snippets_snippet"."created" ASC
+  time: 0.0
