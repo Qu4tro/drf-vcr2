@@ -23,7 +23,11 @@ from .settings import snap_settings
 
 @contextmanager
 def multi_context_manager(*cms: Any) -> Any:
-    "I give up trying to add type hints to this"
+    """
+    I give up trying to add type hints to this.
+
+    I swear it works though. I copied it from stackoverflow!
+    """
     with ExitStack() as stack:
         yield [
             stack.enter_context(cls)
