@@ -20,5 +20,6 @@ class Thing(Bit):
         >>> snap.add(foo="bar")
     """
 
+    @property
     def data(self) -> Any:
         return self.value

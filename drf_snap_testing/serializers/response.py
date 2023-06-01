@@ -20,11 +20,11 @@ class RequestSerializer(ReadOnlySerializer):
         return obj.META.get("QUERY_STRING")
 
     def get_body(self, obj: WSGIRequest) -> literal_str | None:
-        body = obj.META.get("body")
-        if body is None:
+        body = obj.POST
+        if not body:
             return None
 
-        return literal_str(json.dumps(body))
+        return literal_str(json.dumps(body, indent=2))
 
 
 class ResponseSerializer(ReadOnlySerializer):

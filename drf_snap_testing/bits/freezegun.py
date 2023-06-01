@@ -1,5 +1,7 @@
 from typing import Any, Literal
+
 from freezegun import freeze_time
+
 from ..bit import Bit
 
 
@@ -18,8 +20,9 @@ class FreezeGun(Bit):
         )
         self.freezer = freeze_time(self.freeze_datetime)
 
-    def __enter__(self):
+    def __enter__(self) -> "FreezeGun":
         self.freezer.start()
+        return self
 
     def __exit__(self, *args: Any) -> Literal[False]:
         self.freezer.stop()

@@ -1,3 +1,6 @@
+from snippets.models import Snippet
+
+from drf_snap_testing import bits
 from drf_snap_testing.testcase import SnapAPITestCase
 
 
@@ -16,14 +19,34 @@ class UserList(SnapAPITestCase):
 
 class SnippetTest(SnapAPITestCase):
     url_pattern_name = "snippet-list"
+    method = "POST"
+    data = {
+        "title": "string",
+        "code": "string",
+        "linenos": True,
+        "language": "abap",
+        "style": "abap",
+    }
+    user = {"id": 1}
 
     class SnippetPostAuthed:
-        method = "POST"
-        data = {
-            "title": "string",
-            "code": "string",
-            "linenos": True,
-            "language": "abap",
-            "style": "abap",
-        }
-        user = {"id": 1}
+        ...
+
+    class SnippetPostAuthedDbDiff:
+        bits = [bits.DatabaseDiff(models=[Snippet])]
+
+
+class SnippetDelete(SnapAPITestCase):
+    bits = [
+        bits.Queries(),
+        bits.TestInfo(),
+        bits.Response(),
+        bits.DatabaseDiff(models=[Snippet]),
+        bits.FreezeGun(),
+        bits.Mailbox(),
+        bits.VCR(),
+    ]
+    url_pattern_name = "snippet-detail"
+    url_kwargs = {"pk": 1}
+    method = "DELETE"
+    user = {"id": 1}

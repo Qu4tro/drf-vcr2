@@ -1,0 +1,40 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.31.0
+    method: GET
+    uri: https://api.my-ip.io/ip
+  response:
+    body:
+      string: 2442:888:0000:0000:0000:0000:0000:0000
+    headers:
+      Cache-Control:
+      - no-store,no-cache
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '38'
+      Content-Type:
+      - text/plain; charset=us-ascii
+      Date:
+      - Thu, 01 Jun 2023 00:00:00 GMT
+      Pragma:
+      - no-cache
+      Server:
+      - nginx
+      Strict-Transport-Security:
+      - max-age=300; includeSubDomains
+      X-IP-Type:
+      - IPv6
+    status:
+      code: 200
+      message: OK
+version: 1

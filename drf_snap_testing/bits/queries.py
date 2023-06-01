@@ -1,4 +1,7 @@
-from typing import Any, cast
+from typing import Any, Literal, cast
+
+from django.conf import settings
+from django.db import connections, reset_queries
 
 from ..bit import Bit
 from ..serializers import QuerySerializer
@@ -46,3 +49,14 @@ class Queries(Bit):
             ).data
             for db_alias, instance in queries_per_db.items()
         }
+
+    def __enter__(self) -> None:
+        """Start the data collection"""
+        reset_queries()
+
+    def __exit__(self, *args: Any) -> Literal[False]:
+        """Stop the data collection"""
+        self.value = {
+            db_alias: connections[db_alias].queries for db_alias in settings.DATABASES
+        }
+        return False

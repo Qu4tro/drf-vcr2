@@ -1,59 +1,35 @@
 import inspect
 import re
-import sys
 import unittest
-from dataclasses import dataclass
+from collections import OrderedDict
+from contextlib import ExitStack, contextmanager
+from functools import partial
 from pathlib import Path
-from typing import Any, Callable, Iterator, Type, TypeVar
+from typing import Any, Callable, Iterable, Iterator, Mapping, Type, TypeVar, cast
 
 import django
 import rest_framework.test
-from django.conf import settings
 from django.contrib.auth import get_user_model
-
-# from django.core import mail
-from django.db import connections
+from django.core import mail
 from django.test.utils import override_settings
 from django.urls import reverse
+from rest_framework.response import Response
+from rest_framework.test import APIClient
 
+from .bit import Bit
+from .bits import Starter
 from .settings import snap_settings
-from .snap import Snap
 
 
-# TODO: It would be nice to have a way to override this
-@dataclass
-class TestInfo:
-    func: Callable[..., None]
-
-    @property
-    def test_parent_class_name(self) -> str:
-        """The name of the parent class"""
-        return self.func.__class__.__name__
-
-    @property
-    def test_name(self) -> str:
-        """The name of the test"""
-        # pylint: disable=protected-access
-        return self.func._testMethodName  # type: ignore
-
-    @property
-    def test_path(self) -> Path:
-        """The path to the test file"""
-        if (filepath := sys.modules[self.func.__class__.__module__].__file__) is None:
-            raise ValueError("Module has no __file__ attribute")
-
-        return Path(filepath).resolve()
-
-    @property
-    def directory(self) -> Path:
-        """The directory to save the file in"""
-        # TODO: It would be nice to have a way to configure 
-        # whether the test_parent_class_name is present or not
-        return (
-            self.test_path.with_suffix("")
-            / self.test_parent_class_name
-            / self.test_name
-        )
+@contextmanager
+def multi_context_manager(*cms: Any) -> Any:
+    "I give up trying to add type hints to this"
+    with ExitStack() as stack:
+        yield [
+            stack.enter_context(cls)
+            for cls in cms
+            if hasattr(cls, "__enter__") and hasattr(cls, "__exit__")
+        ]
 
 
 SNAKE_CASE = re.compile("((?<=[a-z0-9])[A-Z]|(?!^)[A-Z](?=[a-z]))")
@@ -62,7 +38,13 @@ TEST_KEYS = (
     "method",
     "data",
     "url_pattern_name",
+    "url_kwargs",
     "user",
+    "bits",
+    "snap_class",
+    "format",
+    "content_type",
+    "wsgi_request_extra",
 )
 
 _ATC_co = TypeVar("_ATC_co", bound="SnapAPITestCase", covariant=True)
@@ -221,77 +203,136 @@ class SnapTestCaseMetaclass(type):
 
         @override_settings(DEBUG=True)
         def generic(self: "SnapAPITestCase") -> None:
+            """
+            Source generic test method for the test methods of the SnapTestCase classes
+
+            It takes its test attributes from test_attributes_mapping class attribute.
+
+            Under Snap's context manager, it will perform a request to the API
+            using that data, while retrieving / executing all the specified bits.
+
+            It will then assert that the collected data matches the recorded data.
+            """
             # Get the test attributes
             tam = self.test_attributes_mapping[test_name]
 
-            # Get the user to be used in the request
-            # If the user is None, don't authenticate
-            # If the user is a dict, interpret it as a filter,
-            #   get the user from the database and authenticate
-            request_user_filters = tam.get("user")
-            if request_user_filters is not None:
-                user = get_user_model().objects.get(**request_user_filters)
-                self.client.force_authenticate(user)
+            # Authenticate and build the request
+            SnapGenericHelper.authenticate(self.client, tam)
+            request = SnapGenericHelper.build_request(self.client, tam)
+            bits = SnapGenericHelper.get_bit_instances(tam)
 
-            # Get the snap collection class and snap classes from the test attributes
-            snap_class = tam.get(
-                "snap_class",
-                snap_settings.DEFAULT_SNAP_CLASS,
-            )
-            bits = tam.get(
-                "bits",
-                [
-                    klass() if callable(klass) else klass
-                    for klass in snap_settings.DEFAULT_BITS
-                ],
-            )
+            # Get the test directory and set it for each bit
+            test_directory = SnapGenericHelper.get_test_directory(self, tam)
+            test_directory.mkdir(parents=True, exist_ok=True)
+            for _, bit in bits.items():
+                bit.directory = test_directory
 
-            # Get the HTTP method to be used in the request
-            method = tam.get("method", "GET").lower()
+            # It's important to retrieve the bits inside snap's context manager
+            # as some bits have __enter__ and __exit__ methods that need to be
+            # called.
+            with multi_context_manager(*bits.values()):
+                # Execute the request
+                response = request()
+                # Set the value of each bit
+                bits.get("response", Starter()).value = response
+                bits.get("testinfo", Starter()).value = self
+                bits.get("mailbox", Starter()).value = mail.outbox
 
-            # Get the HTTP method from the client
-            try:
-                http_call = getattr(self.client, method)
-            except AttributeError as err:
-                raise NotImplementedError(
-                    f"APIClient doesn't implement the {method} method"
-                ) from err
-
-            # Get the URL path to be used in the request
-            path = reverse(tam["url_pattern_name"])
-
-            # If the method is not GET, the user may want to specify the
-            #  format and content_type of the request
-            http_kwargs: dict[str, str] = {}
-            if method != "get":
-                http_kwargs = {
-                    "drf_format": tam.get("format"),
-                    "content_type": tam.get("content_type"),
-                }
-
-            # WSGIRequest extra kwargs
-            extra = tam.get("wsgi_request_extra", {})
-
-            # Snap
-            with snap_class(bits=bits, directory=TestInfo(self).directory) as snap:
-                # Make the request
-                response = http_call(path, data=tam.get("data"), **http_kwargs, **extra)
-
-                # Collect the snapshots and add them to the Snap
-                snap.add_bit(response=response)
-                snap.add_bit(testinfo=self)
-                snap.add_bit(
-                    queries={
-                        db_alias: connections[db_alias].queries
-                        for db_alias in settings.DATABASES
-                    }
-                )
-                # TODO: snap.add_bit(mailbox=mail.outbox)
-
-                # Ensure the snapshots are equal to the ones on file
-                self.assertSnapEquals(snap)
+            # It's important to do this outside of the context manager
+            # as the context manager closing may change the state of the
+            # objects being snapshotted.
+            self.assertSnapEquals(bits.values())
 
         return generic
+
+
+class SnapGenericHelper:
+    @staticmethod
+    def authenticate(client: APIClient, tam: Mapping[str, Any]) -> None:
+        """
+        Authenticate the client using the user specified in the test attributes
+
+        If the user test attribute is None, don't authenticate
+        If the user test attribute is a dict:
+            - Interpret it as a filter
+            - Get the user from the database
+            - Authenticate the client using the user
+        """
+        request_user_filters = tam.get("user")
+        if request_user_filters is not None:
+            user = get_user_model().objects.get(**request_user_filters)
+            client.force_authenticate(user)
+
+    @staticmethod
+    def build_request(
+        client: APIClient, tam: Mapping[str, Any]
+    ) -> Callable[[], Response]:
+        """
+        Make a request to the API using:
+            - method (default: GET)
+            - url_pattern_name
+            - data (optional)
+            - format (optional)
+            - content_type (optional)
+            - wsgi_request_extra (optional)
+        """
+        # Get the HTTP method to be used in the request
+        method = tam.get("method", "GET").lower()
+
+        # Get the HTTP method from the client
+        try:
+            http_call = getattr(client, method)
+        except AttributeError as err:
+            raise NotImplementedError(
+                f"APIClient doesn't implement the {method} method"
+            ) from err
+
+        # Get the URL path to be used in the request
+        url_kwargs = tam.get("url_kwargs", {})
+        url = reverse(tam["url_pattern_name"], kwargs=url_kwargs)
+
+        # If the method is not GET, the user may want to specify the
+        #  format and content_type of the request
+        http_kwargs: dict[str, str | None] = {}
+        if method != "get":
+            http_kwargs = {
+                "drf_format": tam.get("format"),
+                "content_type": tam.get("content_type"),
+            }
+
+        # WSGIRequest extra kwargs
+        extra = tam.get("wsgi_request_extra", {})
+
+        # Make the request
+        return partial(http_call, url, data=tam.get("data"), **http_kwargs, **extra)
+
+    @staticmethod
+    def get_test_directory(test: Any, tam: Mapping[str, Any]) -> Path:
+        """
+        Build the get_test_directory partial function to be used by the bits
+        """
+        get_test_directory_func = tam.get(
+            "get_test_directory",
+            snap_settings.DEFAULT_GET_SNAP_PATH,
+        )
+        return cast(Path, get_test_directory_func(test=test, test_attributes=tam))
+
+    @staticmethod
+    def get_bit_instances(tam: Mapping[str, Any]) -> OrderedDict[str, Bit]:
+        bits: OrderedDict[str, Bit] = OrderedDict()
+        # For each bit,
+        # If it's a class instantiate it and add it to the list
+        # If it's an instance, add it to the list
+        for bit in cast(
+            Iterable[Bit | Type[Bit]],
+            tam.get("bits", snap_settings.DEFAULT_BITS),
+        ):
+            if isinstance(bit, type):
+                bit = bit()
+
+            bits[bit.key] = bit
+
+        return bits
 
 
 class SnapTestCase(unittest.TestCase, metaclass=SnapTestCaseMetaclass):
@@ -304,20 +345,20 @@ class SnapTestCase(unittest.TestCase, metaclass=SnapTestCaseMetaclass):
     test_attributes_mapping: dict[str, Any]
 
     # pylint: disable=invalid-name
-    def assertSnapEquals(self, snap: Snap) -> None:
+    def assertSnapEquals(self, bits: Iterable[Bit]) -> None:
         """
         Assert that the snapshots in the Snap are equal to the ones on file
         """
-        for bit in snap.bits:
+        last_err = None
+        for bit in bits:
             try:
-                self.assertEqual(bit.render, bit.current_render)
+                self.assertEqual(bit.render, bit.previous_render)
             except AssertionError as err:
-                if bit.directory is None:
-                    raise AssertionError("Create an issue with this traceback") from err
-                bit.directory.mkdir(parents=True, exist_ok=True)
+                last_err = err
                 bit.write()
-                # TODO: Raise only at the end
-                raise err
+
+        if last_err is not None:
+            raise last_err
 
 
 class SnapDjangoTestCase(SnapTestCase, django.test.TestCase):

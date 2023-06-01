@@ -9,3 +9,7 @@ class ReadOnlySerializer(serializers.Serializer[None]):
     def update(self, _instance: None, _validated_data: None) -> None:
         """This serializer is read-only."""
         raise TypeError("This serializer is read-only")
+
+
+class DictSerializer(ReadOnlySerializer):
+    obj = serializers.DictField(source="*")

@@ -1,0 +1,20 @@
+request:
+  user: red
+  method: DELETE
+  path: /api/snippets/1/
+  query_params: ''
+  headers:
+    Cookie: ''
+  body: null
+response:
+  status_code: 204
+  headers:
+    Vary: Accept
+    Allow: GET, PUT, PATCH, DELETE, HEAD, OPTIONS
+    X-Frame-Options: DENY
+    Content-Length: '0'
+    X-Content-Type-Options: nosniff
+    Referrer-Policy: same-origin
+    Cross-Origin-Opener-Policy: same-origin
+  body: |-
+    null

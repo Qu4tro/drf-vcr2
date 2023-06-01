@@ -1,0 +1,20 @@
+- from_email: from@example.com
+  to:
+  - to@example.com
+  cc: []
+  bcc:
+  - bcc@example.com
+  reply_to: '[''another@example.com'']'
+  subject: Snippet deleted
+  body: |-
+    Snippet 1 deleted by red from IP 2442:888:0000:0000:0000:0000:0000:0000
+  extra_headers: {}
+  attachments:
+  - filename: views.py
+    mimetype: text/x-script.python
+    content: |-
+      hello world
+  alternatives:
+  - mimetype: text/html
+    content: |-
+      <p>Snippet 1 deleted by redfrom IP 2442:888:0000:0000:0000:0000:0000:0000</p>

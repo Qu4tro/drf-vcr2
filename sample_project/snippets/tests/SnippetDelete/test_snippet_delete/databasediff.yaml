@@ -1,0 +1,13 @@
+- model: Snippet
+  added: []
+  removed:
+  - id: 1
+    title: r1
+    code: "\ndef forward(apps, schema_editor):\n    User = apps.get_model(\"auth\"\
+      , \"User\")\n"
+    linenos: true
+    language: python
+    style: friendly
+    owner: 1
+    highlighted: ''
+  altered: {}

@@ -13,8 +13,9 @@ packages = [
 python = "^3.10"
 django = "^4.2.1"
 djangorestframework = "^3.14.0"
-drf-yaml = {path = "/home/quatro/tmp/django-rest-framework-yaml"}
 freezegun = "^1.2.2"
+drf-yaml = {path = "/home/quatro/tmp/django-rest-framework-yaml"}
+vcrpy = "^4.3.1"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -47,7 +48,7 @@ strict = true
 disallow_subclassing_any = false
 
 [[tool.mypy.overrides]]
-module = ["sqlparse"]
+module = ["sqlparse", "vcr"]
 ignore_missing_imports = true
 
 

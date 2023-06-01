@@ -1,0 +1,3 @@
+name: test_snippet_post_authed_db_diff
+parent_class_name: SnippetTest
+path: /home/quatro/drf-snap-testing/sample_project/snippets/tests.py

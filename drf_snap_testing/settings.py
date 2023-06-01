@@ -33,6 +33,7 @@ from django.utils.module_loading import import_string
 class Settings(TypedDict, total=False):
     DEFAULT_SNAP_CLASS: str
     DEFAULT_BITS: list[str]
+    DEFAULT_GET_SNAP_PATH: str
 
 
 DEFAULTS: Settings = {
@@ -40,17 +41,24 @@ DEFAULTS: Settings = {
     "DEFAULT_BITS": [
         "drf_snap_testing.bits.FreezeGun",
         "drf_snap_testing.bits.TestInfo",
-        "drf_snap_testing.bits.Response",
-        "drf_snap_testing.bits.Queries",
         # "drf_snap_testing.bits.DatabaseDiff",
+        "drf_snap_testing.bits.Queries",
         # "drf_snap_testing.bits.Mailbox",
+        "drf_snap_testing.bits.Response",
     ],
+    "DEFAULT_GET_SNAP_PATH": "drf_snap_testing.bit.dynamic_path",
 }
 
 
 # List of settings that may be in string import notation.
 IMPORT_STRINGS = [
     "DEFAULT_SNAP_CLASS",
+    "DEFAULT_BITS",
+    "DEFAULT_GET_SNAP_PATH",
+]
+
+# List of settings that may require an instanciate call
+CREATE_INSTANCES = [
     "DEFAULT_BITS",
 ]
 
@@ -105,11 +113,13 @@ class SnapSettings:
         user_settings: Settings | None = None,
         defaults: Settings | None = None,
         import_strings: list[str] | None = None,
+        create_instances: list[str] | None = None,
     ):
         if user_settings:
             self._user_settings = user_settings
         self.defaults = defaults or DEFAULTS
         self.import_strings = import_strings or IMPORT_STRINGS
+        self.create_instances = create_instances or CREATE_INSTANCES
         self._cached_attrs: set[str] = set()
 
     @property
@@ -137,6 +147,10 @@ class SnapSettings:
         # Coerce import strings into classes
         if attr in self.import_strings:
             val = perform_import(val, attr)
+
+        # Instantiate classes if needed
+        if attr in self.create_instances and isinstance(val, type):
+            val = val()
 
         # Cache the result
         self._cached_attrs.add(attr)
