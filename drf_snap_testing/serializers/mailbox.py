@@ -1,5 +1,5 @@
 from drf_yaml.fields import LiteralCharField
-from drf_yaml.styles import literal_str
+from drf_yaml.styles import LiteralStr
 from rest_framework import serializers
 
 from .base import ReadOnlySerializer
@@ -14,7 +14,7 @@ class MailAttachmentSerializer(ReadOnlySerializer):
         return attachment[0]
 
     def get_content(self, attachment: tuple[str, str, str]) -> str:
-        return literal_str(attachment[1])
+        return LiteralStr(attachment[1])
 
     def get_mimetype(self, attachment: tuple[str, str, str]) -> str:
         return attachment[2]
@@ -25,7 +25,7 @@ class MailAlternativeSerializer(ReadOnlySerializer):
     content = serializers.SerializerMethodField(source="*")
 
     def get_content(self, alternative: tuple[str, str]) -> str:
-        return literal_str(alternative[0])
+        return LiteralStr(alternative[0])
 
     def get_mimetype(self, alternative: tuple[str, str]) -> str:
         return alternative[1]

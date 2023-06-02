@@ -1,7 +1,7 @@
 import json
 
 from django.core.handlers.wsgi import WSGIRequest
-from drf_yaml.styles import literal_str
+from drf_yaml.styles import LiteralStr
 from rest_framework import serializers
 from rest_framework.response import Response
 
@@ -19,12 +19,12 @@ class RequestSerializer(ReadOnlySerializer):
     def get_query_params(self, obj: WSGIRequest) -> str | None:
         return obj.META.get("QUERY_STRING")
 
-    def get_body(self, obj: WSGIRequest) -> literal_str | None:
+    def get_body(self, obj: WSGIRequest) -> LiteralStr | None:
         body = obj.POST
         if not body:
             return None
 
-        return literal_str(json.dumps(body, indent=2))
+        return LiteralStr(json.dumps(body, indent=2))
 
 
 class ResponseSerializer(ReadOnlySerializer):
@@ -32,8 +32,8 @@ class ResponseSerializer(ReadOnlySerializer):
     headers = serializers.DictField()
     body = serializers.SerializerMethodField(required=False)
 
-    def get_body(self, obj: Response) -> literal_str:
-        return literal_str(json.dumps(obj.data, indent=2))
+    def get_body(self, obj: Response) -> LiteralStr:
+        return LiteralStr(json.dumps(obj.data, indent=2))
 
 
 class RequestResponseSerializer(ReadOnlySerializer):

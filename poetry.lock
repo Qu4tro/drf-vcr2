@@ -342,20 +342,18 @@ markdown = ["types-Markdown (>=0.1.5)"]
 
 [[package]]
 name = "drf-yaml"
-version = "0.3.0"
+version = "3.0.0"
 description = "YAML support for Django REST Framework"
 category = "main"
 optional = false
-python-versions = "^3.8"
-files = []
-develop = false
+python-versions = ">=3.8,<4.0"
+files = [
+    {file = "drf_yaml-3.0.0-py3-none-any.whl", hash = "sha256:65ceced309e3a88c42a179da802f29218c00722743bd64d69a1b4ac72f4b8700"},
+    {file = "drf_yaml-3.0.0.tar.gz", hash = "sha256:eed54e925bd1b5a044d96ac3c0ec420aa8350aed4deebf162f2cfbbbe74aa6a3"},
+]
 
 [package.dependencies]
 PyYAML = ">=5.1"
-
-[package.source]
-type = "directory"
-url = "../tmp/django-rest-framework-yaml"
 
 [[package]]
 name = "exceptiongroup"
@@ -999,14 +997,14 @@ files = [
 
 [[package]]
 name = "typing-extensions"
-version = "4.6.2"
+version = "4.6.3"
 description = "Backported and Experimental Type Hints for Python 3.7+"
 category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "typing_extensions-4.6.2-py3-none-any.whl", hash = "sha256:3a8b36f13dd5fdc5d1b16fe317f5668545de77fa0b8e02006381fd49d731ab98"},
-    {file = "typing_extensions-4.6.2.tar.gz", hash = "sha256:06006244c70ac8ee83fa8282cb188f697b8db25bc8b4df07be1873c43897060c"},
+    {file = "typing_extensions-4.6.3-py3-none-any.whl", hash = "sha256:88a4153d8505aabbb4e13aacb7c486c2b4a33ca3b3f807914a9b4c844c471c26"},
+    {file = "typing_extensions-4.6.3.tar.gz", hash = "sha256:d91d5919357fe7f681a9f2b5b4cb2a5f1ef0a1e9f59c4d8ff0d3491e05c0ffd5"},
 ]
 
 [[package]]
@@ -1233,4 +1231,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "a3778182497698694874482688bd00f9fe692cd2466522461d97da79c62da74e"
+content-hash = "a98baf3063738c96e16520258ba7be762d72299fea0dbf3e0849a4286e99dc54"

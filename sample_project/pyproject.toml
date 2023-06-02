@@ -18,8 +18,8 @@ drf-spectacular = "^0.26.2"
 pygments = "^2.15.1"
 django-stubs-ext = "^4.2.0"
 drf-snap-testing = {path = "..", develop = true}
-drf-yaml = {path = "/home/quatro/tmp/django-rest-framework-yaml"}
 vcrpy = "^4.3.1"
+drf-yaml = "^3.0.0"
 
 [tool.poetry.group.dev.dependencies]
 django-extensions = "^3.2.1"
