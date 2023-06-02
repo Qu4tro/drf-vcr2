@@ -13,13 +13,14 @@ class Thing(Bit):
     This works as long as the value can be serialized by the yaml serializer.
 
     Example:
-
-        >>> from drf_snap_testing.snap import Snap
+    -------
         >>> from drf_snap_testing.bits import Thing
-        >>> snap = Snap(bits=[Thing(key="foo")])
-        >>> snap.add(foo="bar")
+        >>> thing = Thing()
+        >>> thing.value = "test"
+        >>> thing.write()
     """
 
     @property
     def data(self) -> Any:
+        """Return the value it was set to."""
         return self.value

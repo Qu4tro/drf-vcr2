@@ -7,11 +7,10 @@ from ..serializers import DictSerializer
 
 
 def partition(
-    dictionary: Mapping[Any, Any], condition: Callable[[Any, Any], bool]
+    dictionary: Mapping[Any, Any],
+    condition: Callable[[Any, Any], bool],
 ) -> tuple[dict[Any, Any], dict[Any, Any]]:
-    """
-    Split a dictionary into two for a given boolean condition
-    """
+    """Split a dictionary into two for a given boolean condition."""
     return (
         {k: v for k, v in dictionary.items() if condition(k, v)},
         {k: v for k, v in dictionary.items() if not condition(k, v)},
@@ -20,10 +19,10 @@ def partition(
 
 class VCR(Bit):
     """
-    A Bit that uses VCR to record and replay HTTP requests
+    A Bit that uses VCR to record and replay HTTP requests.
 
     Example:
-
+    -------
         >>> with VCR(filename="test.yaml", directory="tests/vcr"):
         ...     requests.get("https://example.com")
     """
@@ -31,6 +30,17 @@ class VCR(Bit):
     serializer_class = DictSerializer
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """
+        Initialize the VCR bit.
+
+        Args:
+        ----
+        *args: Arguments to pass to the Bit superclass.
+        **kwargs: Keyword arguments split into two groups:
+            - vcr_kwargs: Keyword arguments to pass to VCR.
+            - init_kwargs: Keyword arguments to pass to the Bit superclass.
+            The partition is based on the arguments to VCR's __init__ method.
+        """
         default_vcr_kwargs: dict[str, Any] = {}
 
         vcr_kwargs, init_kwargs = partition(
@@ -44,31 +54,36 @@ class VCR(Bit):
         self.cassette_ctx: vcr.cassette.CassetteContextDecorator | None = None
 
     def __enter__(self) -> "VCR":
-        "Enter VCR's context manager"
+        """Enter VCR's context manager."""
         if not self.filename:
-            raise ValueError("filename must be set")
+            msg = "filename must be set"
+            raise ValueError(msg)
         if not self.directory:
-            raise ValueError("directory must be set")
+            msg = "directory must be set"
+            raise ValueError(msg)
 
         self.cassette_ctx = self.vcr.use_cassette(self.directory / self.filename)
         self.cassette_ctx.__enter__()
-        self.cassette = self.cassette_ctx._CassetteContextDecorator__cassette
+        self.cassette = (
+            self.cassette_ctx._CassetteContextDecorator__cassette  # ruff: noqa: SLF001
+        )
         return self
 
     def __exit__(self, *args: Any, **kwargs: Any) -> Literal[False]:
-        "Exit VCR's context manager"
+        """Exit VCR's context manager."""
         if self.cassette_ctx is not None:
             self.cassette_ctx.__exit__(*args, **kwargs)
         else:
-            raise ValueError("How did you get here? Raise an issue on GitHub.")
+            msg = "How did you get here? Raise an issue on GitHub."
+            raise ValueError(msg)
         return False
 
     @property
     def previous_render(self) -> bytes:
-        "Don't render anything, so that it never fails"
+        """Don't render anything, so that it never fails."""
         return b""
 
     @property
     def render(self) -> bytes:
-        "Don't render anything, so that it never fails"
+        """Don't render anything, so that it never fails."""
         return b""

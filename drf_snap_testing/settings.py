@@ -1,5 +1,5 @@
 """
-Shamelessly copied from rest_framework.settings
+Shamelessly copied from rest_framework.settings.
 
 Settings for this library are all namespaced in the DRF_SNAP_TESTING setting.
 For example your project's `settings.py` file might look like this:
@@ -31,13 +31,14 @@ from django.utils.module_loading import import_string
 
 
 class Settings(TypedDict, total=False):
+    """Settings type."""
+
     DEFAULT_SNAP_CLASS: str
     DEFAULT_BITS: list[str]
     DEFAULT_GET_SNAP_PATH: str
 
 
 DEFAULTS: Settings = {
-    "DEFAULT_SNAP_CLASS": "drf_snap_testing.snap.Snap",
     "DEFAULT_BITS": [
         "drf_snap_testing.bits.FreezeGun",
         "drf_snap_testing.bits.TestInfo",
@@ -52,7 +53,6 @@ DEFAULTS: Settings = {
 
 # List of settings that may be in string import notation.
 IMPORT_STRINGS = [
-    "DEFAULT_SNAP_CLASS",
     "DEFAULT_BITS",
     "DEFAULT_GET_SNAP_PATH",
 ]
@@ -64,23 +64,18 @@ CREATE_INSTANCES = [
 
 
 def perform_import(val: Any, setting_name: str) -> Any:
-    """
-    If the given setting is a string import notation,
-    then perform the necessary import or imports.
-    """
+    """Perform an import(s) on the given setting if its an import string."""
     if val is None:
         return None
     if isinstance(val, str):
         return import_from_string(val, setting_name)
-    if isinstance(val, (list, tuple)):
+    if isinstance(val, list | tuple):
         return [import_from_string(item, setting_name) for item in val]
     return val
 
 
 def import_from_string(val: str, setting_name: str) -> Any:
-    """
-    Attempt to import a class from a string representation.
-    """
+    """Attempt to import a class from a string representation."""
     try:
         return import_string(val)
     except ImportError as err:
@@ -93,16 +88,18 @@ def import_from_string(val: str, setting_name: str) -> Any:
 
 class SnapSettings:
     """
-    A settings object that allows REST Framework settings to be accessed as
-    properties. For example:
+    A settings object, that allows Snap settings to be accessed as properties.
 
-        from rest_framework.settings import api_settings
-        print(api_settings.DEFAULT_RENDERER_CLASSES)
+    For example:
+
+        from drf_snap_testing.settings import snap_settings
+        print(snap_settings.DEFAULT_BITS)
 
     Any setting with string import paths will be automatically resolved
     and return the class, rather than the string literal.
 
     Note:
+    ----
     This is an internal class that is only compatible with settings namespaced
     under the DRF_SNAP_TESTING name. It is not intended to be used by 3rd-party
     apps, and test helpers like `override_settings` may not work as expected.
@@ -114,7 +111,8 @@ class SnapSettings:
         defaults: Settings | None = None,
         import_strings: list[str] | None = None,
         create_instances: list[str] | None = None,
-    ):
+    ) -> None:
+        """Initialize settings."""
         if user_settings:
             self._user_settings = user_settings
         self.defaults = defaults or DEFAULTS
@@ -124,25 +122,27 @@ class SnapSettings:
 
     @property
     def user_settings(self) -> Settings:
+        """Return user settings."""
         if not hasattr(self, "_user_settings"):
             user_settings = getattr(settings, "DRF_SNAP_TESTING", {})
             if not isinstance(user_settings, dict):
-                raise ImproperlyConfigured(
-                    "The DRF_SNAP_TESTING setting must be a dictionary"
-                )
+                msg = "The DRF_SNAP_TESTING setting must be a dictionary"
+                raise ImproperlyConfigured(msg)
             self._user_settings = cast(Settings, user_settings)
         return self._user_settings
 
     def __getattr__(self, attr: str) -> Any:
+        """Return the value of a given setting."""
         if attr not in self.defaults:
-            raise AttributeError(f"Invalid API setting: {attr}")
+            msg = f"Invalid API setting: {attr}"
+            raise AttributeError(msg)
 
         try:
             # Check if present in user settings
-            val = self.user_settings[attr]  # type: ignore
+            val = self.user_settings[attr]  # type: ignore [literal-required]
         except KeyError:
             # Fall back to defaults
-            val = self.defaults[attr]  # type: ignore
+            val = self.defaults[attr]  # type: ignore [literal-required]
 
         # Coerce import strings into classes
         if attr in self.import_strings:
@@ -158,6 +158,7 @@ class SnapSettings:
         return val
 
     def reload(self) -> None:
+        """Reload settings."""
         for attr in self._cached_attrs:
             delattr(self, attr)
         self._cached_attrs.clear()
@@ -169,6 +170,7 @@ snap_settings = SnapSettings(None, DEFAULTS, IMPORT_STRINGS)
 
 
 def reload_api_settings(*_args: Any, **kwargs: Any) -> None:
+    """Reload settings on signal."""
     setting = kwargs["setting"]
     if setting == "DRF_SNAP_TESTING":
         snap_settings.reload()

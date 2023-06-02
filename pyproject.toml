@@ -39,6 +39,26 @@ python_files = ["tests/*test*.py"]
 target-version = ['py310']
 
 
+[tool.ruff]
+select = [
+    "A" , "B", "C", "E", "D", "F", "G", "I", "N", "Q", "S", "T", "W", "ANN", "ARG",
+    "BLE", "COM", "DJ", "DTZ", "EM", "ERA", "EXE", "FBT", "ICN", "INP", "ISC", "NPY",
+    "PD", "PGH", "PIE", "PL", "PTH", "PYI", "RET", "RSE", "RUF", "SIM", "SLF", "TCH",
+    "TID", "TRY", "UP", "YTT",
+]
+ignore = [
+    "UP006", "UP007", "UP035",
+    "ANN101", "ANN401",
+    "D203", "D212",
+    "TID252",
+    "D104", "D100",
+]
+unfixable = ["ERA001"]
+
+[tool.ruff.per-file-ignores]
+"*migrations/*py" = ["ARG001", "N806", "D101", "D103"]
+
+
 [tool.isort]
 profile = "black"
 

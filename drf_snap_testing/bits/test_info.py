@@ -9,7 +9,7 @@ class TestInfo(Bit):
     This is useful as it provides the test metadata, such as the test name, etc.
 
     Example:
-
+    -------
         >>> from drf_snap_testing.snap import Snap
         >>> from drf_snap_testing.bits import TestInfo
         >>> snap = Snap(bits=[TestInfo])

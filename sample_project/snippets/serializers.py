@@ -1,3 +1,5 @@
+# ruff: noqa: D100,D102,D101,D106
+
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
@@ -9,7 +11,8 @@ User = get_user_model()
 class SnippetSerializer(serializers.HyperlinkedModelSerializer):
     owner = serializers.ReadOnlyField(source="owner.username")
     highlight = serializers.HyperlinkedIdentityField(
-        view_name="snippet-highlight", format="html"
+        view_name="snippet-highlight",
+        format="html",
     )
 
     class Meta:

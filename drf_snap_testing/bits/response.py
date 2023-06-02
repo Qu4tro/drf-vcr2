@@ -10,7 +10,7 @@ class Response(Bit):
     such as the query params, status code, response body, etc.
 
     Example:
-
+    -------
         >>> from drf_snap_testing.snap import Snap
         >>> from drf_snap_testing.bits import Response
         >>> snap = Snap(bits=[Response])

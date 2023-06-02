@@ -1,3 +1,4 @@
+# ruff: noqa: D100,D102
 from typing import Any
 
 import requests
@@ -18,7 +19,9 @@ User = get_user_model()
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet[AbstractBaseUser]):
     """
-    This viewset automatically provides `list` and `retrieve` actions.
+    Viewset for Users.
+
+    This viewset automatically provides `list` and `detail` actions.
     """
 
     queryset = User.objects.all().order_by("id")
@@ -27,6 +30,8 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet[AbstractBaseUser]):
 
 class SnippetViewSet(viewsets.ModelViewSet[Snippet]):
     """
+    Viewset for Snippets.
+
     This viewset automatically provides `list`, `create`, `retrieve`,
     `update` and `destroy` actions.
 
@@ -38,7 +43,7 @@ class SnippetViewSet(viewsets.ModelViewSet[Snippet]):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
 
     @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
-    def highlight(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+    def highlight(self, *_args: Any, **_kwargs: Any) -> Response:
         snippet = self.get_object()
         return Response(snippet.highlighted)
 
@@ -48,8 +53,7 @@ class SnippetViewSet(viewsets.ModelViewSet[Snippet]):
     def destroy(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         response = super().destroy(request, *args, **kwargs)
 
-        # ip = requests.get("https://google.com").text[:10]
-        ip = requests.get("https://api.my-ip.io/ip").text
+        ip = requests.get("https://api.my-ip.io/ip", timeout=10).text
 
         email = EmailMultiAlternatives(
             "Snippet deleted",
@@ -61,7 +65,6 @@ class SnippetViewSet(viewsets.ModelViewSet[Snippet]):
         )
         email.attach(
             "views.py",
-            # Path(__file__).read_bytes(),
             b"hello world",
             "text/x-script.python",
         )

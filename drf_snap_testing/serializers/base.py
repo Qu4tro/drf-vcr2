@@ -1,15 +1,23 @@
+from typing import Any, TypeVar
+
 from rest_framework import serializers
 
-
-class ReadOnlySerializer(serializers.Serializer[None]):
-    def create(self, _validated_data: None) -> None:
-        """This serializer is read-only."""
-        raise TypeError("This serializer is read-only")
-
-    def update(self, _instance: None, _validated_data: None) -> None:
-        """This serializer is read-only."""
-        raise TypeError("This serializer is read-only")
+T = TypeVar("T")
 
 
-class DictSerializer(ReadOnlySerializer):
+class ReadOnlySerializer(serializers.Serializer[T]):
+    """A serializer that is read-only."""
+
+    def create(self, _validated_data: None) -> T:
+        """Do nothing. Serializer is read-only."""
+        msg = "This serializer is read-only"
+        raise TypeError(msg)
+
+    def update(self, _instance: T, _validated_data: None) -> T:
+        """Do nothing. Serializer is read-only."""
+        msg = "This serializer is read-only"
+        raise TypeError(msg)
+
+
+class DictSerializer(ReadOnlySerializer[dict[str, Any]]):
     obj = serializers.DictField(source="*")

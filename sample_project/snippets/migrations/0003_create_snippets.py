@@ -21,7 +21,7 @@ def forward(apps: StateApps, schema_editor: BaseDatabaseSchemaEditor) -> None:
             """
             def forward(apps, schema_editor):
                 User = apps.get_model("auth", "User")
-            """
+            """,
         ),
     )
 
@@ -35,7 +35,7 @@ def forward(apps: StateApps, schema_editor: BaseDatabaseSchemaEditor) -> None:
             """
             def reverse(apps, schema_editor):
                 Snippet = apps.get_model("snippets", "Snippet")
-            """
+            """,
         ),
     )
     Snippet.objects.create(
@@ -57,7 +57,7 @@ def forward(apps: StateApps, schema_editor: BaseDatabaseSchemaEditor) -> None:
             operations = [
                 migrations.RunPython(forward, reverse),
             ]
-            """
+            """,
         ),
     )
 

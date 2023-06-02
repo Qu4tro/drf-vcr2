@@ -56,7 +56,7 @@ _ATC_co = TypeVar("_ATC_co", bound="SnapAPITestCase", covariant=True)
 
 class SnapTestCaseMetaclass(type):
     """
-    Metaclass for SnapTestCase
+    Metaclass for SnapTestCase.
 
     This metaclass is responsible for:
     - Ensuring each test class has the accumulated test attributes from its parents
@@ -65,14 +65,12 @@ class SnapTestCaseMetaclass(type):
     """
 
     def __new__(
-        mcs: Type["SnapTestCaseMetaclass"],
+        mcs: Type["SnapTestCaseMetaclass"],  # ruff: noqa: N804
         clsname: str,
         bases: tuple[Type[type]],
         attrs: dict[str, Any],
     ) -> "SnapTestCaseMetaclass":
-        """
-        TODO
-        """
+        """TODO."""
         # Only apply to subclasses of SnapTestCase
         if clsname.startswith("Snap") and clsname.endswith("TestCase"):
             return super().__new__(mcs, clsname, bases, attrs)
@@ -107,6 +105,8 @@ class SnapTestCaseMetaclass(type):
         parent_test_attrs: dict[str, Any] | None = None,
     ) -> Iterator[tuple[str, str, dict[str, Any]]]:
         """
+        Resolve test attributes from a SnapTestCase.
+
         Given a SnapTestCase attributes, it will convert them into a mapping
             of test name and test parameters.
         The SnapTestCase may have multiple levels of nested test classes.
@@ -178,8 +178,7 @@ class SnapTestCaseMetaclass(type):
 
     @staticmethod
     def resolve_test_name(attrs: dict[str, Any]) -> str:
-        "Determine the test name given the attributes of a class"
-
+        """Determine the test name given the attributes of a class."""
         # If the class has a test_name attribute, use it
         test_name = attrs.get("test_name")
         if test_name is None:
@@ -201,14 +200,16 @@ class SnapTestCaseMetaclass(type):
     @staticmethod
     def generic_wrapper(test_name: str) -> Callable[[_ATC_co], None]:
         """
-        Wrapper used to create a closure out of the generic test, so that
-        variables can be included in it at "build time"
+        Create a generic test method for the test methods of the SnapTestCase classes.
+
+        The wrapper's use is to create a closure out of the generic test, so that
+        variables can be included in it at "build time".
         """
 
         @override_settings(DEBUG=True)
         def generic(self: "SnapAPITestCase") -> None:
             """
-            Source generic test method for the test methods of the SnapTestCase classes
+            Source generic test method for the test methods of the SnapTestCase classes.
 
             It takes its test attributes from test_attributes_mapping class attribute.
 
@@ -251,10 +252,17 @@ class SnapTestCaseMetaclass(type):
 
 
 class SnapGenericHelper:
+    """
+    Helper class for the generic test method of the SnapTestCase classes.
+
+    It contains static methods that are used by the generic test method
+    to perform the request, authenticate the client, etc.
+    """
+
     @staticmethod
     def authenticate(client: APIClient, tam: Mapping[str, Any]) -> None:
         """
-        Authenticate the client using the user specified in the test attributes
+        Authenticate the client using the user specified in the test attributes.
 
         If the user test attribute is None, don't authenticate
         If the user test attribute is a dict:
@@ -269,16 +277,19 @@ class SnapGenericHelper:
 
     @staticmethod
     def build_request(
-        client: APIClient, tam: Mapping[str, Any]
+        client: APIClient,
+        tam: Mapping[str, Any],
     ) -> Callable[[], Response]:
         """
-        Make a request to the API using:
+        Build a request to the API using the test attributes.
+
+        The test attributes must contain:
             - method (default: GET)
             - url_pattern_name
             - data (optional)
             - format (optional)
             - content_type (optional)
-            - wsgi_request_extra (optional)
+            - wsgi_request_extra (optional).
         """
         # Get the HTTP method to be used in the request
         method = tam.get("method", "GET").lower()
@@ -287,9 +298,8 @@ class SnapGenericHelper:
         try:
             http_call = getattr(client, method)
         except AttributeError as err:
-            raise NotImplementedError(
-                f"APIClient doesn't implement the {method} method"
-            ) from err
+            msg = f"APIClient doesn't implement the {method} method"
+            raise NotImplementedError(msg) from err
 
         # Get the URL path to be used in the request
         url_kwargs = tam.get("url_kwargs", {})
@@ -312,9 +322,7 @@ class SnapGenericHelper:
 
     @staticmethod
     def get_test_directory(test: Any, tam: Mapping[str, Any]) -> Path:
-        """
-        Build the get_test_directory partial function to be used by the bits
-        """
+        """Build the get_test_directory partial function to be used by the bits."""
         get_test_directory_func = tam.get(
             "get_test_directory",
             snap_settings.DEFAULT_GET_SNAP_PATH,
@@ -323,6 +331,7 @@ class SnapGenericHelper:
 
     @staticmethod
     def get_bit_instances(tam: Mapping[str, Any]) -> OrderedDict[str, Bit]:
+        """Get the bits from the test attributes. Instantiate them if necessary."""
         bits: OrderedDict[str, Bit] = OrderedDict()
         # For each bit,
         # If it's a class instantiate it and add it to the list
@@ -331,17 +340,15 @@ class SnapGenericHelper:
             Iterable[Bit | Type[Bit]],
             tam.get("bits", snap_settings.DEFAULT_BITS),
         ):
-            if isinstance(bit, type):
-                bit = bit()
-
-            bits[bit.key] = bit
+            ibit = bit() if isinstance(bit, type) else bit
+            bits[ibit.key] = ibit
 
         return bits
 
 
 class SnapTestCase(unittest.TestCase, metaclass=SnapTestCaseMetaclass):
     """
-    TestCase subclass that adds the ability to take snapshots of the test
+    TestCase subclass that adds the ability to take snapshots of the test.
 
     It's recommended to use SnapDjangoTestCase or SnapAPITestCase instead of this class
     """
@@ -349,10 +356,8 @@ class SnapTestCase(unittest.TestCase, metaclass=SnapTestCaseMetaclass):
     test_attributes_mapping: dict[str, Any]
 
     # pylint: disable=invalid-name
-    def assertSnapEquals(self, bits: Iterable[Bit]) -> None:
-        """
-        Assert that the snapshots in the Snap are equal to the ones on file
-        """
+    def assertSnapEquals(self, bits: Iterable[Bit]) -> None:  # ruff: noqa: N802
+        """Assert that the snapshots in the Snap are equal to the ones on file."""
         last_err = None
         for bit in bits:
             try:
@@ -367,7 +372,7 @@ class SnapTestCase(unittest.TestCase, metaclass=SnapTestCaseMetaclass):
 
 class SnapDjangoTestCase(SnapTestCase, django.test.TestCase):
     """
-    TestCase subclass that adds the SnapTestCase functionality to Django's TestCase
+    TestCase subclass that adds the SnapTestCase functionality to Django's TestCase.
 
     It's recommended to use this class instead of SnapTestCase, as it provides
     some additional functionality.
@@ -376,7 +381,7 @@ class SnapDjangoTestCase(SnapTestCase, django.test.TestCase):
 
 class SnapAPITestCase(SnapTestCase, rest_framework.test.APITestCase):
     """
-    TestCase subclass that adds the SnapTestCase functionality to DRF's APITestCase
+    TestCase subclass that adds the SnapTestCase functionality to DRF's APITestCase.
 
     It's recommended to use this class instead of SnapTestCase, as it provides
     some additional functionality.

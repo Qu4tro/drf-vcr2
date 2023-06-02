@@ -6,7 +6,7 @@ from ..serializers import DictSerializer
 
 class Starter(Bit):
     """
-    This is a starter bit.
+    Starter bit.
 
     This is meant to be used as a template for creating new bits.
     """
@@ -16,7 +16,9 @@ class Starter(Bit):
     @property
     def data(self) -> Any:
         """
-        This is the property that returns the value of the bit
-        and therefore the data that is serialized to disk.
+        Overridden property.
+
+        This is the data that is passed to the serializer and
+        eventually ends up rendered in the snapshot file.
         """
         return self.value

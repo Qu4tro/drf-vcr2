@@ -1,2 +1,3 @@
 def test_sanity() -> None:
-    assert True
+    """Sanity check to make sure the tests are running."""
+    return

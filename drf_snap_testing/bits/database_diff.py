@@ -8,6 +8,9 @@ from ..serializers import DatabaseDiffSerializer
 
 
 class DatabaseDiff(Bit):
+    """Compare the state of the database before and after a test."""
+
+    # TODO: Change this to DictSerializer
     serializer_class = DatabaseDiffSerializer
 
     def __init__(
@@ -15,6 +18,15 @@ class DatabaseDiff(Bit):
         *args: Any,
         **kwargs: Any,
     ) -> None:
+        """
+        Initialize the DatabaseDiff bit.
+
+        Args:
+        ----
+        models (list[Type[Model]], default=[]): A list of models to compare.
+        *args: Arguments to pass to the Bit superclass.
+        **kwargs: Keyword arguments to pass to the Bit superclass.
+        """
         models = kwargs.pop("models", None)
 
         super().__init__(*args, **kwargs)
@@ -23,17 +35,20 @@ class DatabaseDiff(Bit):
         self.diffs: dict[Type[Model], dict[str, Any]] = {}
 
     def __enter__(self) -> "DatabaseDiff":
+        """Take a list of models and record their table data."""
         for model in self.models:
             self.record_data[model] = self._generate_record_data(model)
 
         return self
 
     def __exit__(self, *args: Any) -> Literal[False]:
+        """Compare the state of the database before and after a test."""
         self._generate_diff()
         return False
 
     @property
     def data(self) -> list[dict[str, Any]]:
+        """Return the differences between the database before and after a test."""
         result = []
         for model in self.models:
             result.append(
@@ -42,7 +57,7 @@ class DatabaseDiff(Bit):
                     "added": self.diffs[model]["added"],
                     "removed": self.diffs[model]["removed"],
                     "altered": self.diffs[model]["altered"],
-                }
+                },
             )
         return result
 
@@ -50,7 +65,7 @@ class DatabaseDiff(Bit):
         record_data = {}
         for instance in model.objects.all():
             data = model_to_dict(instance)
-            record_data[instance.id] = data  # type: ignore
+            record_data[instance.id] = data  # type: ignore [attr-defined]
         return record_data
 
     def _generate_diff(self) -> None:
@@ -65,7 +80,8 @@ class DatabaseDiff(Bit):
                     removed_records.append(data)
                 elif new_record_data[instance_id] != data:
                     altered_records[instance_id] = self._compare_records(
-                        data, new_record_data[instance_id]
+                        data,
+                        new_record_data[instance_id],
                     )
 
             for instance_id, records in new_record_data.items():
@@ -79,7 +95,9 @@ class DatabaseDiff(Bit):
             }
 
     def _compare_records(
-        self, old_data: dict[str, Any], new_data: dict[str, Any]
+        self,
+        old_data: dict[str, Any],
+        new_data: dict[str, Any],
     ) -> dict[str, dict[str, Any]]:
         differences = {}
         for key in old_data:

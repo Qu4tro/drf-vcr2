@@ -1,19 +1,23 @@
-from snippets.models import Snippet
+# ruff: noqa: D100,D101,D106
 
 from drf_snap_testing import bits
 from drf_snap_testing.testcase import SnapAPITestCase
+from snippets.models import Snippet
 
 
 class UserList(SnapAPITestCase):
-    "somethingelse"
+    """somethingelse."""
+
     url_pattern_name = "user-list"
 
     class UserListAnon:
-        "something"
+        """something."""
+
         user = None
 
     class UserListAnon2:
-        "something1"
+        """something1."""
+
         user = {"id": 1}
 
 
