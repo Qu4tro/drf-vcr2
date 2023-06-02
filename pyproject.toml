@@ -13,9 +13,9 @@ packages = [
 python = "^3.10"
 django = "^4.2.1"
 djangorestframework = "^3.14.0"
+drf-yaml = "^3.0.0"
 freezegun = "^1.2.2"
 vcrpy = "^4.3.1"
-drf-yaml = "^3.0.0"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -65,7 +65,6 @@ profile = "black"
 
 [tool.mypy]
 strict = true
-disallow_subclassing_any = false
 
 [[tool.mypy.overrides]]
 module = ["sqlparse", "vcr"]
